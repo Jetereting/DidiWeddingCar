@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查日子</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/comment.css"/>
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <script src="../js/checkDay.js"></script>
+</head>
+<body>
+<!--头部-->
+<div id="header">
+    <div class="container">
+        <div class="logo fl"><a class="img" href="index.html" tppabs="http://tianlong.eiyou.us/"></a></div>
+        <div class="city fl">
+            <h3><span style="color: #111;" id="current_city">高密</span><br>
+                <a href="index/getCity.html" id="change-city">[切换城市]</a>
+            </h3>
+        </div>
+
+        <input type="hidden" id="current-city" value="hunchelaila"/>
+
+        <ul class="login fr">
+            <li class="fl"><a class="loginin" href="javascript:void(0);">登 录</a></li>
+            <li class="fl"><a class="signup" href="member/register1.htm"
+                              tppabs="http://tianlong.eiyou.us/member/register1">注 册</a></li>
+
+            <form class="login-form" action="" method="post" style="display: none;">
+                <div class="group">
+                    <div>手机号</div>
+                    <input type="text" id="d-cellphone" class="d-input required" placeholder="输入您的手机号" name="mobile">
+                </div>
+                <div class="group relative">
+                    <div>输入密码</div>
+                    <input type="password" id="d-password" class="d-input required" name="password" placeholder="请输入密码">
+
+                    <div id="error-message" style="color: #ff8913;"></div>
+                </div>
+
+                <div class="login-btn">
+                    <input type="submit" id="d-login" class="btn btn-red p0" value="登录" style="width: 100%">
+                </div>
+                <div class="fl">还没有账号？ <a href="member/register1.htm" tppabs="http://tianlong.eiyou.us/member/register1"
+                                          class="kermes">立即注册</a></div>
+                <div class="fr"><a href="member/getPasswd1.htm" tppabs="http://tianlong.eiyou.us/member/getPasswd1"
+                                   class="kermes">忘记密码？</a></div>
+            </form>
+        </ul>
+
+        <div class="fr">
+            <ul id="nav" class="nav clearfix">
+                <li class="nLi">
+                    <h3><a href="index.html">首页</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="checkDay.html" style="color: #d60012">查日子</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3>
+                        <a href="buyGoods.html">婚礼用品采购</a>
+                    </h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="hotelBooking.html">酒店预订</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="weddingCar.html">婚车</a></h3>
+                </li>
+            </ul>
+            <script>
+                var MODULE = '/Home';
+
+                //登录框内容
+                var ele = $('.login-form');
+                var loginDialog;
+                $('.loginin').click(function () {
+                    loginDialog = dialog({
+                        fixed: true,
+                        title: '登录',
+                        content: ele
+                    }).showModal();
+                    return false;
+                });
+                /**
+                 * 改变消息值
+                 */
+                function changeNum(num) {
+                    if (num != 0) {
+                        $('#message-new').text(num);
+                        $('#message-tip').text(num);
+                    } else {
+                        $('#message-new').hide();
+                        $('#message-tip').hide();
+                    }
+                }
+
+                //文本框失去焦点后
+                $('.login-form :input').blur(function () {
+                    $('#error-message').hide();
+                    var $parent = $(this).parent();
+                    $parent.find(".formtips").remove();
+                    //验证手机
+                    if ($(this).is('#d-cellphone')) {
+                        if (this.value == "" || this.value != "" && !/^(((\+86|86)?1[3|4|5|7|8][0-9]\d{8})|((\+\d{2})|(\d{2}))\d{11})$/.test(this.value)) {
+                            var errorMsg = '请输入正确手机号';
+                            $parent.append('<span class="formtips"><span class="icon icon-wrong"></span>' + errorMsg + '</span>');
+                        }
+                    }
+                    if ($(this).is('#d-password')) {
+                        if (this.value == "" || this.value != "" && !/^[a-zA-Z0-9_]{6,16}$/.test(this.value)) {
+                            var errorMsg = '密码位数不正确';
+                            $parent.append('<span class="formtips"><span class="icon icon-wrong"></span>' + errorMsg + '</span>');
+                        }
+                    }
+
+                }).focus(function () {
+                    var $parent = $(this).parent();
+                    $parent.find(".formtips").remove();
+                });
+
+
+                //提交，最终验证。
+                $('#d-login').click(function () {
+                    $(".login-form :input.required").trigger('blur');
+                    var numError = $('.formtips .icon-wrong').length;
+                    if (numError) {
+
+                    } else {
+                        $.ajax({
+                            type: "POST",
+                            url: MODULE + "/member/login",
+                            data: {mobile: $("#d-cellphone").val(), password: $("#d-password").val()},
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.status == 1) {
+                                    $('.login').html('');
+                                    var html = '<li class="logged"><a class="welcome" href="javascript:;" onclick="toggleEle(\'.welcome\', \'#login-menu\')"><span class="icon icon-person"></span> ' + data.realname + '<span class="icon icon-arrowdown"></span></a>\
+                                        <ul id="login-menu" class="clearfix" style="display: none;">\
+                                <span class="icon icon-arrowup"></span>\
+                                <li class="title"><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/member/panel*/><span class="icon icon-setting"></span>个人中心</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/orders*/><span class="icon icon-route"></span>我的行程</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/account*/><span class="icon icon-person"></span>我的账户</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/myCar*/><span class="icon icon-money"></span>接亲赚钱</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/message*/><span class="icon icon-message"></span>系统消息</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/member/info*/><span class="icon icon-info"></span>个人信息</a></li>\
+                                <li class="tr"><a class="signout" href="index/index.htm"/*tpa=http://tianlong.eiyou.us/member/logout*/><span class="icon icon-exit"></span>退&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;出</a></li>\
+                                </ul>\
+                                </li>';
+
+                                    $('.login').append(html);
+                                    loginDialog.remove();
+                                } else {
+                                    var error = $('#error-message');
+                                    error.html('');
+                                    error.html('<span class="icon icon-wrong"></span> ' + data.message + '</span>').show();
+                                }
+                            }
+                        });
+                    }
+                    return false;
+                });
+
+                /*
+                 *  参数1：点击的对象
+                 *  参数2：显示和隐藏的对象
+                 */
+                function toggleEle(element, target) {
+                    var element = $(element);
+                    var target = $(target);
+                    var num = 0;
+                    element.click(function () {
+                        if (num++ % 2 == 0) {
+                            target.show();
+                        } else {
+                            target.hide();
+                        }
+                    });
+                }
+                toggleEle('.welcome', '#login-menu');
+
+            </script>
+        </div>
+    </div>
+</div>
+
+
+<form class="form-inline" role="form">
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">男出生日期（阳历）</div>
+            <input class="form-control" type="date" placeholder="男 出生日期（阳历）" id="iBoyDay">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">男 出生时间</div>
+            <input class="form-control" type="number" maxlength="2" size="4" placeholder="24小时制" id="iBoyTime">
+        </div>
+    </div>
+    <br>
+    <br>
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">女出生日期（阳历）</div>
+            <input class="form-control" type="date" placeholder="女 出生日期（阳历）" id="iGirlDay">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">女 出生时间</div>
+            <input class="form-control" type="number" maxlength="2" size="2" placeholder="24小时制" id="iGirlTime">
+        </div>
+    </div>
+    <br>
+    <br>
+    <button type="button" class="btn btn-success" id="bCheckDay">计算好日子</button>
+</form>
+<boy>a</boy>
+<girl>a</girl>
+<result></result>
+
+</body>
+</html>

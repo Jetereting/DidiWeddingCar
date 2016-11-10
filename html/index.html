@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>滴滴婚车</title>
+    <meta name="keywords" content="婚车,婚车租赁,婚博会,婚车装饰,婚车扎花,接亲,婚庆租车,婚庆车队">
+    <meta name="description"
+          content="滴滴婚车基于互联网P2P共享经济理念，是国内第一家把“车共享”模式带入婚车租赁行业的开拓者，这是一种全新的个人对个人的租赁婚车的方式，以分享，关爱、诚信为前提，一起创造乐享人生">
+    <link rel="stylesheet" type="text/css" href="../css/comment.css"/>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/jquery.superslide.js"></script>
+    <script src="../js/jquery.datetimepicker.js"></script>
+    <script src="../js/index.js"></script>
+</head>
+<body>
+<script src="../js/dialog.js"></script>
+<script src="../js/jquery.cookie.js"></script>
+
+<!--头部-->
+<div id="header">
+    <div class="container">
+        <div class="logo fl"><a class="img" href="index.html" tppabs="http://tianlong.eiyou.us/"></a></div>
+        <div class="city fl">
+            <h3><span style="color: #111;" id="current_city">高密</span><br>
+                <a href="index/getCity.html" id="change-city">[切换城市]</a>
+            </h3>
+        </div>
+
+        <input type="hidden" id="current-city" value="hunchelaila"/>
+
+        <ul class="login fr">
+            <li class="fl"><a class="loginin" href="javascript:void(0);">登 录</a></li>
+            <li class="fl"><a class="signup" href="member/register1.htm"
+                              tppabs="http://tianlong.eiyou.us/member/register1">注 册</a></li>
+
+            <form class="login-form" action="" method="post" style="display: none;">
+                <div class="group">
+                    <div>手机号</div>
+                    <input type="text" id="d-cellphone" class="d-input required" placeholder="输入您的手机号" name="mobile">
+                </div>
+                <div class="group relative">
+                    <div>输入密码</div>
+                    <input type="password" id="d-password" class="d-input required" name="password" placeholder="请输入密码">
+
+                    <div id="error-message" style="color: #ff8913;"></div>
+                </div>
+
+                <div class="login-btn">
+                    <input type="submit" id="d-login" class="btn btn-red p0" value="登录" style="width: 100%">
+                </div>
+                <div class="fl">还没有账号？ <a href="member/register1.htm" tppabs="http://tianlong.eiyou.us/member/register1"
+                                          class="kermes">立即注册</a></div>
+                <div class="fr"><a href="member/getPasswd1.htm" tppabs="http://tianlong.eiyou.us/member/getPasswd1"
+                                   class="kermes">忘记密码？</a></div>
+            </form>
+        </ul>
+
+        <div class="fr">
+            <ul id="nav" class="nav clearfix">
+                <li class="nLi">
+                    <h3><a href="index.html" style="color: #d60012">首页</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="checkDay.html">查日子</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3>
+                        <a href="buyGoods.html">婚礼用品采购</a>
+                    </h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="hotelBooking.html">酒店预订</a></h3>
+                </li>
+                <li class="nLi">
+                    <h3><a href="weddingCar.html">婚车</a></h3>
+                </li>
+            </ul>
+            <script>
+                var MODULE = '/Home';
+
+                //登录框内容
+                var ele = $('.login-form');
+                var loginDialog;
+                $('.loginin').click(function () {
+                    loginDialog = dialog({
+                        fixed: true,
+                        title: '登录',
+                        content: ele
+                    }).showModal();
+                    return false;
+                });
+                /**
+                 * 改变消息值
+                 */
+                function changeNum(num) {
+                    if (num != 0) {
+                        $('#message-new').text(num);
+                        $('#message-tip').text(num);
+                    } else {
+                        $('#message-new').hide();
+                        $('#message-tip').hide();
+                    }
+                }
+
+                //文本框失去焦点后
+                $('.login-form :input').blur(function () {
+                    $('#error-message').hide();
+                    var $parent = $(this).parent();
+                    $parent.find(".formtips").remove();
+                    //验证手机
+                    if ($(this).is('#d-cellphone')) {
+                        if (this.value == "" || this.value != "" && !/^(((\+86|86)?1[3|4|5|7|8][0-9]\d{8})|((\+\d{2})|(\d{2}))\d{11})$/.test(this.value)) {
+                            var errorMsg = '请输入正确手机号';
+                            $parent.append('<span class="formtips"><span class="icon icon-wrong"></span>' + errorMsg + '</span>');
+                        }
+                    }
+                    if ($(this).is('#d-password')) {
+                        if (this.value == "" || this.value != "" && !/^[a-zA-Z0-9_]{6,16}$/.test(this.value)) {
+                            var errorMsg = '密码位数不正确';
+                            $parent.append('<span class="formtips"><span class="icon icon-wrong"></span>' + errorMsg + '</span>');
+                        }
+                    }
+
+                }).focus(function () {
+                    var $parent = $(this).parent();
+                    $parent.find(".formtips").remove();
+                });
+
+
+                //提交，最终验证。
+                $('#d-login').click(function () {
+                    $(".login-form :input.required").trigger('blur');
+                    var numError = $('.formtips .icon-wrong').length;
+                    if (numError) {
+
+                    } else {
+                        $.ajax({
+                            type: "POST",
+                            url: MODULE + "/member/login",
+                            data: {mobile: $("#d-cellphone").val(), password: $("#d-password").val()},
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.status == 1) {
+                                    $('.login').html('');
+                                    var html = '<li class="logged"><a class="welcome" href="javascript:;" onclick="toggleEle(\'.welcome\', \'#login-menu\')"><span class="icon icon-person"></span> ' + data.realname + '<span class="icon icon-arrowdown"></span></a>\
+                                        <ul id="login-menu" class="clearfix" style="display: none;">\
+                                <span class="icon icon-arrowup"></span>\
+                                <li class="title"><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/member/panel*/><span class="icon icon-setting"></span>个人中心</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/orders*/><span class="icon icon-route"></span>我的行程</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/account*/><span class="icon icon-person"></span>我的账户</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/myCar*/><span class="icon icon-money"></span>接亲赚钱</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/message*/><span class="icon icon-message"></span>系统消息</a></li>\
+                                <li><a href="member/login.htm"/*tpa=http://tianlong.eiyou.us/member/info*/><span class="icon icon-info"></span>个人信息</a></li>\
+                                <li class="tr"><a class="signout" href="index/index.htm"/*tpa=http://tianlong.eiyou.us/member/logout*/><span class="icon icon-exit"></span>退&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;出</a></li>\
+                                </ul>\
+                                </li>';
+
+                                    $('.login').append(html);
+                                    loginDialog.remove();
+                                } else {
+                                    var error = $('#error-message');
+                                    error.html('');
+                                    error.html('<span class="icon icon-wrong"></span> ' + data.message + '</span>').show();
+                                }
+                            }
+                        });
+                    }
+                    return false;
+                });
+
+                /*
+                 *  参数1：点击的对象
+                 *  参数2：显示和隐藏的对象
+                 */
+                function toggleEle(element, target) {
+                    var element = $(element);
+                    var target = $(target);
+                    var num = 0;
+                    element.click(function () {
+                        if (num++ % 2 == 0) {
+                            target.show();
+                        } else {
+                            target.hide();
+                        }
+                    });
+                }
+                toggleEle('.welcome', '#login-menu');
+
+            </script>
+        </div>
+    </div>
+</div>
+<!--中间-->
+<div class="clear"></div>
+
+<div id="page">
+    <!--首页幻灯片-->
+    <div class="full-slide">
+        <div class="slide-box">
+            <div class="hd">
+                <ul>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+            </div>
+            <div class="bd">
+                <ul>
+                    <li>
+                        <div class="first-slide">
+                            <div class="container">
+                                <div class="right">
+                                    <div class="download">
+                                        <img style="display:block;height: 450px;width: 960px;"
+                                             src="../img/download.png" border="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="second-slide">
+                            <div class="container">
+                                <div class="right">
+                                    <div class="download">
+                                        <img style="display:block;height: 450px;width: 960px;"
+                                             src="../img/download.png" border="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="third-slide"></div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <!-- 下面是前/后按钮代码，如果不需要删除即可 -->
+            <a class="prev" href="javascript:void(0)"></a>
+            <a class="next" href="javascript:void(0)"></a>
+        </div>
+        <script type="text/javascript">
+
+        </script>
+    </div>
+
+    <div class="clear"></div>
+
+    <!--轮播图-->
+    <div id="banner">
+        <div class="container">
+            <div id="slideBox" class="slideBox">
+                <div class="bd">
+                    <ul>
+                        <li><a href="Page/news.htm" target="_blank"><img
+                                src="../img/banner/banner1.png"/></a></li>
+                        <li><img src="../img/banner/banner2.png"/></li>
+                        <li><img src="../img/banner/banner3.png"/></li>
+                        <li><img src="../img/banner/banner4.png"/></li>
+                    </ul>
+                </div>
+                <!-- 下面是前/后按钮代码，如果不需要删除即可 -->
+                <a class="prev" href="javascript:void(0)"></a>
+                <a class="next" href="javascript:void(0)"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--底部-->
+<div class="clear"></div>
+
+<div id="footer">
+    <div class="container clearfix">
+        <div class="span4">
+            <h4>帮助中心</h4>
+            <ul>
+                <li><a href="help/process.htm" tppabs="http://tianlong.eiyou.us/help/process">租车流程</a></li>
+                <li><a href="help/owner.htm" tppabs="http://tianlong.eiyou.us/help/owner">车主说明</a></li>
+                <li><a href="help/renter.htm" tppabs="http://tianlong.eiyou.us/help/renter">租客说明</a></li>
+                <li><a href="help/rules.htm" tppabs="http://tianlong.eiyou.us/help/rules">平台服务规则</a></li>
+            </ul>
+        </div>
+        <div class="span4">
+            <h4>服务条款</h4>
+            <ul>
+                <li><a href="service/law.htm" tppabs="http://tianlong.eiyou.us/service/law">法律解读</a></li>
+                <li><a href="service/privacy.htm" tppabs="http://tianlong.eiyou.us/service/privacy">隐私协议</a></li>
+                <li><a href="service/deposit.htm" tppabs="http://tianlong.eiyou.us/service/deposit">车主保证金</a></li>
+                <li><a href="service/agreement.htm" tppabs="http://tianlong.eiyou.us/service/agreement">婚车租用服务协议</a>
+                </li>
+            </ul>
+        </div>
+        <div class="span4">
+            <h4>关于我们</h4>
+            <ul>
+                <li><a href="about/about.htm" tppabs="http://tianlong.eiyou.us/about/about">了解我们</a></li>
+                <li><a href="about/superiority.htm" tppabs="http://tianlong.eiyou.us/about/superiority">平台优势</a></li>
+                <li><a href="about/contact.htm" tppabs="http://tianlong.eiyou.us/about/contact">联系方式</a></li>
+                <li><a href="about/joinus.htm" tppabs="http://tianlong.eiyou.us/about/joinus">加入我们</a></li>
+            </ul>
+        </div>
+        <div class="span6">
+            <h4>联系我们</h4>
+            <ul>
+                <li class="col3"><span class="icon icon-telephone"></span>：400-9610-520</li>
+                <li class="col3"><span class="icon icon-email"></span>：nihao@tianlong.eiyou.us</li>
+                <li class="col3"><span class="icon icon-weibo"></span>：<a
+                        href="javascript:if(confirm(%27http://weibo.com/u/5510391371  \n\nThis file was not retrieved by Teleport Pro, because it is addressed on a domain or path outside the boundaries set for its Starting Address.  \n\nDo you want to open it from the server?%27))window.location=%27http://weibo.com/u/5510391371%27"
+                        tppabs="http://weibo.com/u/5510391371">@田龙滴滴婚车</a></li>
+            </ul>
+        </div>
+        <div class="span3 text-center">
+            <h5>微信公众号</h5>
+            <img src="../static.tianlong.eiyou.us/Home/img/code/weixin.png"
+                 tppabs="http://static.tianlong.eiyou.us/Home/img/code/weixin.png" alt=""/>
+        </div>
+        <div class="span3 text-center">
+            <h5>手机客户端</h5>
+            <img src="../static.tianlong.eiyou.us/Home/img/code/d-code.png"
+                 tppabs="http://static.tianlong.eiyou.us/Home/img/code/d-code.png" alt=""/>
+        </div>
+    </div>
+
+    <div class="copyright">©2015-2016 tianlong.eiyou.us 田龙科技有限公司 <a class="c9"
+                                                                    href="javascript:if(confirm(%27http://www.miitbeian.gov.cn/  \n\nThis file was not retrieved by Teleport Pro, because it is addressed on a domain or path outside the boundaries set for its Starting Address.  \n\nDo you want to open it from the server?%27))window.location=%27http://www.miitbeian.gov.cn/%27"
+                                                                    tppabs="http://www.miitbeian.gov.cn/"
+                                                                    target="_blank">京ICP备15012318号</a> |
+        <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1254621664'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/stat.php%3Fid%3D1254621664%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+    </div>
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "../hm.baidu.com/hm.js-16c6b458fb2a12f96b34623d2849c56f.js"/*tpa=http://hm.baidu.com/hm.js?16c6b458fb2a12f96b34623d2849c56f*/;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+
+</div>
+</body>
+</html>
